@@ -4,13 +4,12 @@ const authenticate = require("../middlewares/authenticate");
 const Post = require("../models/Post");
 const User = require("../models/User");
 
-
 /*
     @usage : Create a new Post
     @url : /api/posts/
     @fields : text , image
     @method : POST
-    @access : PRIVATE
+    @access : PRIVAT
  */
 router.post(
   "/",
@@ -123,7 +122,6 @@ router.delete("/:postId", authenticate, async (request, response) => {
  */
 router.put("/like/:postId", authenticate, async (request, response) => {
   try {
-
     let postId = request.params.postId;
     var userId = request.user.id;
 
@@ -152,44 +150,35 @@ router.put("/like/:postId", authenticate, async (request, response) => {
     @method : POST
     @access : PRIVATE
  */
-router.post(
-  "/comment/:postId",
-  authenticate,
-  async (request, response) => {
-    try {
-      let postId = request.params.postId;
-      let user = await User.findOne({ _id: request.user.id });
+router.post("/comment/:postId", authenticate, async (request, response) => {
+  try {
+    let postId = request.params.postId;
+    let user = await User.findOne({ _id: request.user.id });
 
-      let post = await Post.findById(postId);
+    let post = await Post.findById(postId);
 
-      // check if post is exists
-      if (!post) {
-        return response
-          .status(400)
-          .json({ errors: [{ msg: "No Post Found" }] });
-      }
-
-      let newComment = {
-        user: request.user.id,
-        text: request.body.text,
-        name: user.name,
-        avatar: user.avatar,
-      };
-
-      post.comments.unshift(newComment);
-      post = await post.save();
-      let postt = await Post.findById(postId).populate("user", [
-        "_id",
-        "avatar",
-      ]);
-
-      response.status(200).json({ post: postt });
-    } catch (error) {
-      console.error(error);
-      response.status(500).json({ errors: [{ msg: error.message }] });
+    // check if post is exists
+    if (!post) {
+      return response.status(400).json({ errors: [{ msg: "No Post Found" }] });
     }
+
+    let newComment = {
+      user: request.user.id,
+      text: request.body.text,
+      name: user.name,
+      avatar: user.avatar,
+    };
+
+    post.comments.unshift(newComment);
+    post = await post.save();
+    let postt = await Post.findById(postId).populate("user", ["_id", "avatar"]);
+
+    response.status(200).json({ post: postt });
+  } catch (error) {
+    console.error(error);
+    response.status(500).json({ errors: [{ msg: error.message }] });
   }
-);
+});
 
 /*
     @usage : Delete Comment of a post
